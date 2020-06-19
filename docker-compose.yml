@@ -1,0 +1,38 @@
+version: "3.8"
+
+services:
+  api:
+    container_name: api
+    build: ./api
+    environment:
+      - CONNECTION_STRING=postgres://postgres:password@db/vmbank
+    depends_on:
+      - db
+    ports:
+      - "8080:8080"
+
+  webapp:
+    container_name: web
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+    environment:
+      - API_URL=http://api:8080/accounts
+    ports:
+      - "80:80"
+    depends_on:
+      - api
+
+  db:
+    container_name: db
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: vmbank
+    volumes:
+      - ./db/:/docker-entrypoint-initdb.
+    ports:
+      - "5432:5432"
+
+  

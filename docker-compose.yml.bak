@@ -1,0 +1,48 @@
+version: "3.8"
+
+services:
+  api:
+    container_name: api
+    build: 
+      context: ./api
+      dockerfile: Dockerfile
+    environment:
+      - PGUSER=postgres
+      - PGHOST=postgres
+      - PGDATABASE=vmbank
+      - PGPASSWORD=password
+      - PGPORT=5432
+    restart: on-failure
+    volumes:
+      - /app/node_modules # Inside the container, don't try to override this folder, just leave as is
+      - ./api:/app # Look at the api directory and copy everything into the app folder in the container
+    depends_on:
+      - db
+    ports:
+      - "8080:8080"
+
+  webapp:
+    container_name: web
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+    environment:
+      - API_URL=http://api:8080/accounts
+    ports:
+      - "80:80"
+    depends_on:
+      - api
+
+  db:
+    container_name: db
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: vmbank
+    volumes:
+      - ./db/:/docker-entrypoint-initdb.
+    ports:
+      - "5432:5432"
+
+  
